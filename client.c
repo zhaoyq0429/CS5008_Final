@@ -31,5 +31,7 @@ int main() {
     // send to Google server using HTTP protocal 
     message = "GET \\ HTTP/1.1\r\nHOST:google.com\r\n\r\n";
     send(socketFD, message, strlen(message), 0);
+    
+    recv();
     return 0;
 }
