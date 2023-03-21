@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <string.h>
 
 int main() {
     int socketFD  = socket(AF_INET, SOCK_STREAM, 0);
@@ -16,5 +17,9 @@ int main() {
     if (result == 0) {
         printf("Connection was successful\n");
     }
+
+    char* buffer;
+    buffer = "GET \\ HTTP/1.1\r\nHOST:google.com\r\n\r\n";
+    send(socketFD, buffer, strlen(buffer), 0);
     return 0;
 }
