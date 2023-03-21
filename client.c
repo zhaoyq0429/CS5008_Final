@@ -32,6 +32,10 @@ int main() {
     message = "GET \\ HTTP/1.1\r\nHOST:google.com\r\n\r\n";
     send(socketFD, message, strlen(message), 0);
     
-    recv();
+    // To receive response
+    char buffer[1024];
+    recv(socketFD, buffer, 1024, 0);
+    printf("Response was %s\n", buffer);
+    
     return 0;
 }
