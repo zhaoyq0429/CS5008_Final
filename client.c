@@ -5,8 +5,9 @@
 #include <string.h>
 #include <malloc.h>
 
+#include "socketutil.h"
 // To extract mathod and make application more readable
-struct sockaddr_in* createIPv4Address(char *ip, int port);
+/* struct sockaddr_in* createIPv4Address(char *ip, int port);
 int createTCPIpv4Socket();
 struct sockaddr_in* createIPv4Address(char *ip, int port){
     // create IPv4 socket address
@@ -19,7 +20,7 @@ struct sockaddr_in* createIPv4Address(char *ip, int port){
     inet_pton(AF_INET, ip, &address->sin_addr.s_addr);
     return address;
 }
-
+*/
 int main() {
     // create the socket file descriptor 
     // AF_INET: address family for IP version 4
@@ -49,4 +50,4 @@ int main() {
     return 0;
 }
 
-int createTCPIpv4Socket(){return socket(AF_INET, SOCK_STREAM, 0);}
+// int createTCPIpv4Socket(){return socket(AF_INET, SOCK_STREAM, 0);}
