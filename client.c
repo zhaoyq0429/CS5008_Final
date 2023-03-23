@@ -19,9 +19,14 @@ int main() {
     int sock = 0, read_size;
     struct sockaddr_in serv_addr;
     char message[2000] = {0};
+    
+    //Create Mutex Lock for the chatroom
     pthread_t thread_id;
 
     // Creating socket file descriptor
+    // AF_INET: address family for IP version 4 IPv4:32bit, IPv6:128bit address length
+    // SOCK_STREAM: TCP socket, TCP is a connection-oriented protocol, whereas UDP is a connectionless protocol
+    // 0 protocal/layers, i.e., using IP layer 
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
         return -1;
@@ -50,6 +55,7 @@ int main() {
 
     // Sending messages to the server
     while(1) {
+        //stdin is an input stream where data is sent to and read by a program in FD
         fgets(message, 2000, stdin);
         send(sock , message , strlen(message) , 0 );
         memset(message, 0, sizeof(message));
