@@ -1,78 +1,83 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
-#include <string.h>
-#include <malloc.h>
-#include <bull.h>
+#include <pthread.h>
 
-#include "socketutil.h"
-// To extract mathod and make application more readable
-/* struct sockaddr_in* createIPv4Address(char *ip, int port);
-int createTCPIpv4Socket(); 
-struct sockaddr_in* createIPv4Address(char *ip, int port){
-    // create IPv4 socket address
-    const struct sockaddr_in *address = malloc(sizeof(struct sockaddr_in));
-    // set properties of address
-    address->sin_family = AF_INET;
-    // port # of the server that is listening HTTP connection
-    address->sin_port = htons(port); 
-    // convert to IP address from text to binary int form 
-    inet_pton(AF_INET, ip, &address->sin_addr.s_addr);
-    return address;
-}
-*/
+#define PORT 8080
+#define MAX_CLIENTS 5
+
+int clients[MAX_CLIENTS]; // Array to hold socket descriptors of clients
+int num_clients = 0; // Number of clients currently connected
+
+void *receive_handler(void *);
+
 int main() {
-    // create the socket file descriptor 
-    // AF_INET: address family for IP version 4 IPv4:32bit, IPv6:128bit address length
-    // SOCK_STREAM: TCP socket, TCP is a connection-oriented protocol, whereas UDP is a connectionless protocol
-    // 0 protocal/layers, i.e., using IP layer 
-    int socketFD  = createTCPIpv4Socket();
-    
-    //142.250.188.46 google IP
-    struct sockaddr_in *address = createIPv4Address("142.250.188.46", 2000);
+    int sock = 0, read_size;
+    struct sockaddr_in serv_addr;
+    char message[2000] = {0};
+    pthread_t thread_id;
 
-    int result = connect(socketFD, address, sizeof(*address));
-
-    if (result == 0) {
-        printf("Connection was successful\n");
+    // Creating socket file descriptor
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("\n Socket creation error \n");
+        return -1;
     }
 
-    //initializing with Null value
-    char *line = NULL;
-    size_t lineSize = 0;
-    printf("type and ww will send(type exit) ... \n");
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
 
-    while(true) {
-        //stdin is an input stream where data is sent to and read by a program in FD
-        //charCount fill with the count of characters inside that line
-        ssize_t charCount = getline(&line, &lineSize, stdin);
-        if (charCount >0) {
-            //strcmp compares two strings character by character. If the strings are equal, the function returns 0.
-            if strcmp(line,"exit\n" == 0){
-                break;
-            }
-        }
-        //sending the line to the socket
-        ssize_t amountWasSent = send(socketFD, line, charCount, 0);
+    // Convert IPv4 and IPv6 addresses from text to binary form
+    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
+        printf("\nInvalid address/ Address not supported \n");
+        return -1;
     }
 
-    close(SocketFD);
+    // Connecting to the server
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        printf("\nConnection Failed \n");
+        return -1;
+    }
 
-    /*
-    char* message;
-    // send to Google server using HTTP protocal 
-    message = "GET \\ HTTP/1.1\r\nHOST:google.com\r\n\r\n";
-    send(socketFD, message, strlen(message), 0);
-    
-    // To receive response
-    char buffer[1024];
-    recv(socketFD, buffer, 1024, 0);
-    printf("Response was %s\n", buffer);
-    */
+    // Creating thread to receive messages from the server
+    if( pthread_create( &thread_id, NULL, receive_handler, (void*) &sock) < 0) {
+        perror("could not create thread");
+        return 1;
+    }
 
-    
+    // Sending messages to the server
+    while(1) {
+        fgets(message, 2000, stdin);
+        send(sock , message , strlen(message) , 0 );
+        memset(message, 0, sizeof(message));
+    }
+
     return 0;
 }
 
-// int createTCPIpv4Socket(){return socket(AF_INET, SOCK_STREAM, 0);}
+void *receive_handler(void *socket_desc) {
+    // Get the socket descriptor
+    int sock = *(int*)socket_desc;
+    int read_size;
+    char server_message[2000] = {0};
+
+    // Receiving messages from the server
+    while( (read_size = recv(sock , server_message , 2000 , 0)) > 0 ) {
+        printf("%s", server_message);
+        memset(server_message, 0, sizeof(server_message));
+    }
+
+    if(read_size == 0) {
+        printf("Server disconnected\n");
+        fflush(stdout);
+    }
+    else if(read_size == -1) {
+        perror("recv failed");
+    }
+
+    return 0;
+}
+
