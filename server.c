@@ -41,6 +41,7 @@ int main() {
     address.sin_port = htons( PORT );
 
     // Bind the socket to the specified IP address and port
+    // To receive the file descriptor of the server, and ask for server addres
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
         perror("bind failed");
         exit(EXIT_FAILURE);
@@ -88,6 +89,7 @@ void *handle_client(void *socket_desc) {
     while ((read_size = recv(sock , client_message , 2000 , 0)) > 0 ) {
         // Broadcast the message to all connected clients
         broadcast_message(client_message);
+        // Initialize client array  
         memset(client_message, 0, sizeof(client_message));
     }
 
