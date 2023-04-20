@@ -67,14 +67,14 @@ int main() {
             perror("accept failed");
             exit(EXIT_FAILURE);
         }
-
-        printf("New client connected\n");
         
         if (num_clients+1 > MAX_CLIENTS) {
         printf("Server is full, rejecting new client\n");
         close(new_socket);
         continue;
         }
+        
+        printf("New client connected\n");
 
         // Receive the client's name
         char client_name[50] = {0};
